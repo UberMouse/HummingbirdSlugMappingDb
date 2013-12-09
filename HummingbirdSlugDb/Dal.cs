@@ -24,17 +24,24 @@ namespace HummingbirdSlugDb
 
 
         // Creates a Note and inserts it into the collection in MongoDB.
-        public void InsertMapping(params Mapping[] game)
+        public bool InsertMapping(params Mapping[] mappings)
         {
             var collection = GetMappings();
             try
             {
-                collection.InsertBatch(game, WriteConcern.Acknowledged);
+                foreach (var mapping in mappings)
+                {
+                    collection.Update(Query.EQ("TvDBId", mapping.TvDBId),
+                                      Update.Replace(mapping),
+                                      UpdateFlags.Upsert);
+                    return true;
+                }
             }
             catch (MongoCommandException ex)
             {
-                var x = ex;
+                
             }
+            return false;
         }
 
         public IEnumerable<Mapping> RetrieveMappings(params int[] tvDbIds)

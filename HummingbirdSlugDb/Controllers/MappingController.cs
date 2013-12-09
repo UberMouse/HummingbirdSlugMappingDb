@@ -43,12 +43,19 @@ namespace HummingbirdSlugDb.Controllers
             }
         }
 
-        public void PostMapping(Mapping m)
+        public IHttpActionResult PostMapping(Mapping m)
         {
             using (var dal = new Dal())
             {
-                if (dal.RetrieveMappings(m.TvDBId).Any()) return;
-                dal.InsertMapping(m);
+                var mappings = dal.RetrieveMappings(m.TvDBId).ToList();
+                if (mappings.Any())
+                {
+                    if(mappings.First() == m)
+                        return BadRequest("Identical mapping already exists");
+                }
+                if (dal.InsertMapping(m))
+                    return Ok("Mapping upserted");
+                return BadRequest("Error upserting to Database");
             }    
         }
     }
